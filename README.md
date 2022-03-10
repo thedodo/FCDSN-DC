@@ -19,4 +19,10 @@ This repository contains
 RGB             |  Disparity
 :-------------------------:|:-------------------------:
 ![AdironRGB](./docs/examples/MB_Adrion_RGB.png)  |  ![AdironDisp](./docs/examples/MB_Adiron.png) |
+![PlaytRGB](./docs/examples/MB_playtable_RGB.png)  |  ![PlaytDisp](./docs/examples/playtable.png) |
 ![2RGB](./docs/examples/2RGB.png)  |  ![2Disp](./docs/examples/2Disp.png) |
+![3RGB](./docs/examples/3RGB.png)  |  ![3Disp](./docs/examples/3Disp.png) |
+![ArchRGB](./docs/examples/architecture1_flickrRGB.png)  |  ![ArchDisp](./docs/examples/architecture1_flickrDisp.png) |
+![WomanRGB](./docs/examples/woman_holopixRGB.jpg)  |  ![WomanDisp](./docs/examples/woman_holopixDisp.png) |
+![SheepRGB](./docs/examples/sheep_holopixRGB.jpg)  |  ![SheepDisp](./docs/examples/sheep_holopixDisp.png) |
+
