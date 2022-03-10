@@ -1,3 +1,10 @@
+"""
+(c) DI Dominik Hirner BSc. 
+Institute for graphics and vision (ICG)
+University of Technology Graz, Austria
+e-mail: dominik.hirner@icg.tugraz.at
+"""
+
 import sys
 import glob
 import numpy as np
