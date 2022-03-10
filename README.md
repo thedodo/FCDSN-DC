@@ -14,6 +14,13 @@ This repository contains
 - python3.6 code for training and inference
 - trained weights for many publicly available datasets
 
+### TODO
+all scripts/notebooks tested for:
+- [X] MB
+- [ ] KITTI2012
+- [ ] KITTI2015
+- [ ] ETH
+
 
 ## Examples
 RGB             |  Disparity
