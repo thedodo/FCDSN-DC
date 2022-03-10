@@ -1,5 +1,5 @@
 # FCDSN-DC: An Accurate and Lightweight end-to-end Trainable Neural Network for Stereo Estimation with Depth Completion
-![Teaser image](./docs/Header.png)
+![Teaser image](./docs/Network_header.png)
 Dominik Hirner, Friedrich Fraundorfer
 
 An pytorch implementation of our accurate and lightweight end-to-end trainable CNN for stereo estimation with depth completion.
