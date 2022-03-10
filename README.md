@@ -13,3 +13,9 @@ This repository contains
 - jupyter notebooks for training and inference of disparity via a stereo-pair
 - python3.6 code for training and inference
 - trained weights for many publicly available datasets
+
+
+## Examples
+RGB             |  Disparity
+:-------------------------:|:-------------------------:
+![2RGB](./docs/examples/2RGB.png)  |  ![2Disp](./docs/examples/2Disp.png)
