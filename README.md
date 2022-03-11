@@ -7,6 +7,7 @@ An pytorch implementation of our accurate and lightweight end-to-end trainable C
 This method has been accepted and will be published at the **ICPR 2022** conference. If you use our work please cite our paper
 
 The whole project is in pure python 3 and pytorch 1.2.0
+
 A demo of the whole end-to-end method is available online in Google Colab: 
 [Demo](https://colab.research.google.com/drive/10_QRckJdc19unydikcZIRZbTk_g1peHu?usp=sharing)
 
