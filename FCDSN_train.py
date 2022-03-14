@@ -10,7 +10,6 @@ import glob
 import numpy as np
 import cv2
 import re
-import time
 from termcolor import colored
 from PIL import Image
 
@@ -260,9 +259,6 @@ def createNW(num_feat_branch, num_feat_simb):
             self.Conv4 = nn.Conv2d(3*num_feat_simb, num_feat_simb, kernel_size=3,stride=1,padding = 1,dilation = 1, bias=True)
             self.Conv5 = nn.Conv2d(4*num_feat_simb, 1, kernel_size=3,stride=1,padding = 1,dilation = 1, bias=True)
             
-            #why does the output need to be 18?? who knows..
-            #everything else not possible with GPU-RAM! Come up with new network structure?
-            #maybe the sim.meas does not need to be fully densely conn.?
             self.conv_offset = nn.Conv2d(1, 18, kernel_size=3, padding=1, bias=None)
             self.deform_conv = DeformConv2D(1, 1, padding=1)
             
@@ -340,37 +336,7 @@ def readPFM(file):
     return data, scale
 
 
-def loadSintel():
-    
-    left_filelist = glob.glob(input_folder + 'clean_left/*/*.png')
-    right_filelist = glob.glob(input_folder + 'clean_right/*/*.png')
-    disp_filelist = glob.glob(input_folder + 'disparities/*/*.png')
-    
-    left_filelist = sorted(left_filelist)
-    right_filelist = sorted(right_filelist)
-    disp_filelist = sorted(disp_filelist)   
-    
-    
-    left_list = []
-    right_list = []
-    disp_list = []
-    
-    for i in range(0,len(left_filelist)):  #len(inters_list)
-        cur_left = cv2.imread(left_filelist[i])
-        cur_right = cv2.imread(right_filelist[i])
-        #RGB image
-        cur_disp = disparity_sintel(disp_filelist[i])
-        cur_disp = cur_disp.astype(np.float32)
-        #set disp == 0 to np.inf!!
-        cur_disp[np.where(cur_disp == 0)] = np.inf
-        
-        left_list.append(cur_left)
-        right_list.append(cur_right)
-        disp_list.append(cur_disp)
-        
-    return left_list, right_list, disp_list
-
-def loadETH3D():
+def loadETH3D(input_folder):
     
     left_filelist = glob.glob(input_folder + '/im0.png')
     right_filelist = glob.glob(input_folder + '/im1.png')
@@ -397,7 +363,7 @@ def loadETH3D():
     return left_list, right_list, disp_list
 
 
-def loadKitti2015():
+def loadKitti2015(input_folder):
 
     left_filelist = glob.glob(input_folder + 'image_2/*.png')
     right_filelist = glob.glob(input_folder + 'image_3/*.png')
@@ -463,7 +429,7 @@ def loadKitti2015():
     return left_list, right_list, disp_list
 
 
-def loadKitti2012():
+def loadKitti2012(input_folder):
 
     left_filelist = glob.glob(input_folder + 'colored_0/*.png')
     right_filelist = glob.glob(input_folder + 'colored_1/*.png')
@@ -523,6 +489,7 @@ def loadKitti2012():
         
     return left_list, right_list, disp_list
 
+
 def loadMB(input_folder):
     
     left_filelist = glob.glob(input_folder + '/im0.png')
@@ -545,72 +512,6 @@ def loadMB(input_folder):
         
         cur_disp[np.isnan(cur_disp)] = 0
         cur_disp[np.isinf(cur_disp)] = 0
-        
-        left_list.append(cur_left)
-        right_list.append(cur_right)
-        disp_list.append(cur_disp)
-        
-    return left_list, right_list, disp_list
-
-
-def loadDrivingStereo():
-    
-        
-    left_filelist = glob.glob(input_folder + 'left/*/*.jpg')
-    right_filelist = glob.glob(input_folder + 'right/*/*.jpg')
-    disp_filelist = glob.glob(input_folder + 'disp/*/*.png')
-    
-    left_filelist = sorted(left_filelist)
-    right_filelist = sorted(right_filelist)
-    disp_filelist = sorted(disp_filelist)   
-      
-    ridc = np.random.randint(0,len(left_filelist),2000)   
-    
-    left_list = []
-    right_list = []
-    disp_list = []
-    
-    #load 2k at a time
-    for i in range(0,2000):  
-        cur_left = cv2.imread(left_filelist[ridc[i]])
-        cur_right = cv2.imread(right_filelist[ridc[i]])
-        #RGB image
-        cur_disp = cv2.imread(disp_filelist[ridc[i]])
-        #RGB image
-        cur_disp = np.mean(cur_disp, axis=2)
-        cur_disp = cur_disp.astype(np.float32)
-        #set disp == 0 to np.inf!!
-        cur_disp[np.where(cur_disp == 0)] = np.inf
-        
-        left_list.append(cur_left)
-        right_list.append(cur_right)
-        disp_list.append(cur_disp)
-        
-    return left_list, right_list, disp_list
-
-#new loader: many GB of data (170K+ images) => cannot load all into ram
-def loadFlyingThings():
-        
-    left_filelist = glob.glob(input_folder + 'frames_cleanpass/TRAIN/*/*/left/*.png')
-    right_filelist = glob.glob(input_folder + 'frames_cleanpass/TRAIN/*/*/right/*.png')
-    disp_filelist = glob.glob(input_folder + 'disparity/TRAIN/*/*/left/*.pfm')
-    
-    left_filelist = sorted(left_filelist)
-    right_filelist = sorted(right_filelist)
-    disp_filelist = sorted(disp_filelist)   
-      
-    ridc = np.random.randint(0,len(left_filelist),50)   
-    
-    left_list = []
-    right_list = []
-    disp_list = []
-    
-    #load 50 at a time
-    for i in range(0,50):  
-        cur_left = cv2.imread(left_filelist[ridc[i]])
-        cur_right = cv2.imread(right_filelist[ridc[i]])
-
-        cur_disp,_ = readPFM(disp_filelist[ridc[i]])
         
         left_list.append(cur_left)
         right_list.append(cur_right)
@@ -705,7 +606,6 @@ def filterCostVolMedianPyt(cost_vol):
         
     return torch.squeeze(cost_vol)
 
-#from guided_filter_pytorch.guided_filter import FastGuidedFilter
 def filterCostVolBilatpyt(cost_vol,left):
     
     left = np.mean(left,axis=2)
@@ -751,13 +651,6 @@ def LR_Check(first_output, second_output):
     
     first_output = first_output.astype(np.float32)
     first_output[np.where(first_output == 0.0)] = np.nan
-    
-    #only for MB!
-    if(dataset == 'MB' or dataset == 'MBTest' or dataset == 'MB2021'):
-        first_output[np.where(first_output <= 18)] = np.nan
-    #KITTItest ?
-    if(dataset == 'KITTI2012' or dataset == 'KITTI2015'):
-        first_output[np.where(first_output <= 2)] = np.nan
         
     return first_output
 
@@ -783,8 +676,6 @@ def createCostVol(branch, simB,left_im,right_im,max_disp):
         
         cost_vol = np.zeros((max_disp+1,a_h,a_w))
         cost_volT = Variable(Tensor(cost_vol))
-        
-        
 
         #0 => max_disp => one less disp!
         #python3 apparently cannot have 0 here for disp: right_shift = torch.cuda.FloatTensor(1,f,h,disp).fill_(0)  
@@ -802,21 +693,7 @@ def createCostVol(branch, simB,left_im,right_im,max_disp):
                 _,f,h_ap,w_ap = right_appended.shape
                 right_shifted[:,:,:,:] = right_appended[:,:,:,:(w_ap-disp)]
                 sim_score = simB(torch.cat((left_feat, right_shifted),dim=1))
-                #sim_score = simB(torch.cat((right_shifted, left_feat),dim=1))
-                
                 cost_volT[disp,:,:] = torch.squeeze(sim_score)              
-
-    #del left_im
-    #del right_im
-    #del left_imT
-    #del right_imT
-    #del left_feat
-    #del right_feat
-    #del right_shifted
-   # del right_shift
-    #del right_appended
-   # del cost_vol
-   # torch.cuda.empty_cache()              
 
     return cost_volT
 
@@ -859,17 +736,6 @@ def createCostVolRL(branch, simB, left_im,right_im,max_disp):
             
                 sim_score = simB(torch.cat((left_shifted, right_feat),dim=1))
                 cost_volT[disp,:,:] = torch.squeeze(sim_score)
-
-   # del left_im
-   # del right_im
-   # del left_imT
-   # del right_imT
-   # del left_feat
-   # del right_feat
-   # del left_shifted
-   # del left_shift
-  #  del cost_vol
-   # torch.cuda.empty_cache()                
                 
     return cost_volT
 
@@ -882,7 +748,6 @@ def TestImage(branch, simB, fn_left, fn_right, max_disp, filtered, lr_check):
     if(filtered):
         
         cost_vol = createCostVol(branch, simB, left,right,max_disp)
-        #cost_vol_filteredn = filterCostVolMedianPyt(cost_vol) 
         
         cost_vol_filteredn = filterCostVolBilatpyt(cost_vol,left)
         cost_vol_filteredn = np.squeeze(cost_vol_filteredn.cpu().data.numpy())                
@@ -894,7 +759,6 @@ def TestImage(branch, simB, fn_left, fn_right, max_disp, filtered, lr_check):
         
         if(lr_check):
             cost_vol_RL = createCostVolRL(branch, simB,left,right,max_disp)
-            #cost_vol_RL_fn = filterCostVolMedianPyt(cost_vol_RL)
             
             cost_vol_RL_fn = filterCostVolBilatpyt(cost_vol_RL,right)
             cost_vol_RL_fn = np.squeeze(cost_vol_RL_fn.cpu().data.numpy())        
@@ -975,93 +839,11 @@ def writePFMcyt(file, image, scale=1):
     scale = -scale
 
     file.write('%f\n'.encode() % scale)
-
     image.tofile(file)
+
+
+def TestMB(branch, simB, input_folder, epoch, output_folder,filtered,lr_check,fill_incons, save):
     
-def TestMBTest(epoch, output_folder,filtered,lr_check,fill_incons, save):
-    
-    s_count = 1
-    t_count = 0.0
-
-    algo_name = 'FC_sim_'
-
-    nr_samples = len(glob.glob(input_folder))
-    for samples in glob.glob(input_folder):
-
-        
-        f = open(samples + 'calib.txt','r')
-        calib = f.read()
-        max_disp = int(calib.split('\n')[6].split("=")[1])
-        s_name = samples.split('/')[-2]
-
-        t = time.time()
-
-        disp_name = samples + '/disp0'+algo_name
-
-        disp = None
-        disp_s = None
-
-        if(lr_check):
-            disp_s,disp, disp_rl = TestImage(samples + '/im0.png', samples + '/im1.png', max_disp, filtered, lr_check)
-        else:
-            _,disp, disp_rl = TestImage(samples + '/im0.png', samples + '/im1.png', max_disp, filtered, lr_check)
-
-        if(not fill_incons):
-            s_count = s_count + 1
-            elapsed = time.time() - t
-
-
-        folder = samples
-
-
-        if(fill_incons):
-
-            #do it dynamically
-            disp_s_arr = np.array(disp_s)
-            im_disp = Image.fromarray(disp_s_arr) 
-            im_disp = np.dstack((im_disp, im_disp, im_disp)).astype(np.uint8)    
-
-            h,w = disp_s.shape
-
-            shifted = cv2.pyrMeanShiftFiltering(im_disp, 7, 7)
-
-            gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 1,
-                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-            #kernel = np.ones((5,5), np.uint8)
-            #dilation = cv2.dilate(thresh,kernel,iterations = 2)
-            #mask = cv2.erode(dilation, kernel, iterations=2)
-
-            disp_filled  = FillIncons(thresh, disp_s_arr)
-            s_count = s_count + 1
-            elapsed = time.time() - t
-            disp = np.array(disp)
-            disp_filled = np.array(disp_filled)
-            
-        else:
-            disp = np.array(disp)
-
-        if(fill_incons):
-                writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp_filled.astype(np.float32)) 
-                writePFMcyt(output_folder + algo_name + s_name + '%06d_s.pfm' %epoch,disp_s) 
-                writePFMcyt(output_folder + algo_name + s_name + '%06d_rl.pfm' %epoch,disp_rl) 
-                
-        else:
-            if(save):
-                writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
-                if(lr_check):
-                    writePFMcyt(output_folder + algo_name + s_name + '%06d_s.pfm' %epoch,disp_s) 
-                    writePFMcyt(output_folder + algo_name + s_name + '%06d_rl.pfm' %epoch,disp_rl) 
-    return True
-
-
-
-def TestMBHP(branch, simB, input_folder, epoch, output_folder,filtered,lr_check,fill_incons, save):
-    
-    s_count = 1
-    t_count = 0.0
-
     avg_five_pe = 0.0
     avg_four_pe = 0.0 
     avg_three_pe = 0.0 
@@ -1080,10 +862,6 @@ def TestMBHP(branch, simB, input_folder, epoch, output_folder,filtered,lr_check,
         calib = f.read()
         max_disp = int(calib.split('\n')[6].split("=")[1])
         s_name = samples.split('/')[-2]
-        #print(s_name)
-        t = time.time()
-
-        disp_name = samples + '/disp0'+algo_name
 
         disp = None
         disp_s = None
@@ -1093,47 +871,11 @@ def TestMBHP(branch, simB, input_folder, epoch, output_folder,filtered,lr_check,
         else:
             disp = TestImage(branch, simB, samples + '/im0.png', samples + '/im1.png', max_disp, filtered, lr_check)
 
-        if(not fill_incons):
-            s_count = s_count + 1
-            elapsed = time.time() - t
-
-
-        folder = samples
-
-
-        if(fill_incons):
-
-            #do it dynamically
-            disp_s_arr = np.array(disp_s)
-            im_disp = Image.fromarray(disp_s_arr) 
-            im_disp = np.dstack((im_disp, im_disp, im_disp)).astype(np.uint8)    
-
-            h,w = disp_s.shape
-
-            shifted = cv2.pyrMeanShiftFiltering(im_disp, 7, 7)
-
-            gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 1,
-                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-            #kernel = np.ones((5,5), np.uint8)
-            #dilation = cv2.dilate(thresh,kernel,iterations = 2)
-            #mask = cv2.erode(dilation, kernel, iterations=2)
-
-            disp_filled  = FillIncons(thresh, disp_s_arr)
-            s_count = s_count + 1
-            elapsed = time.time() - t
-            disp = np.array(disp)
-            disp_filled = np.array(disp_filled)
-            
-        else:
-            disp = np.array(disp)
+        disp = np.array(disp)
 
         gt = np.array(gt)
-        if(fill_incons):
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp_filled, gt)    
-        else:
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
+        
+        five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
 
 
         avg_five_pe = avg_five_pe + five_pe
@@ -1143,17 +885,11 @@ def TestMBHP(branch, simB, input_folder, epoch, output_folder,filtered,lr_check,
         avg_one_pe = avg_one_pe + one_pe
         avg_pf_pe = avg_pf_pe + pf_pe        
 
-        if(fill_incons):
-                writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp_filled.astype(np.float32)) 
+        if(save):
+            writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
+            if(lr_check):
                 writePFMcyt(output_folder + algo_name + s_name + '%06d_s.pfm' %epoch,disp_s) 
                 writePFMcyt(output_folder + algo_name + s_name + '%06d_rl.pfm' %epoch,disp_rl.astype(np.float32)) 
-
-        else:
-            if(save):
-                writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
-                if(lr_check):
-                    writePFMcyt(output_folder + algo_name + s_name + '%06d_s.pfm' %epoch,disp_s) 
-                    writePFMcyt(output_folder + algo_name + s_name + '%06d_rl.pfm' %epoch,disp_rl.astype(np.float32)) 
 
 
     avg_four_pe = avg_four_pe / nr_samples
@@ -1169,7 +905,7 @@ def TestMBHP(branch, simB, input_folder, epoch, output_folder,filtered,lr_check,
     return avg_two_pe
 
 
-def TestKITTI2015(epoch,output_folder,filtered,lr_check,fill_incons,save):
+def TestKITTI2015(branch, simB,input_folder, epoch,output_folder,filtered,lr_check,fill_incons,save):
     
         
     avg_four_pe = 0.0 
@@ -1217,89 +953,45 @@ def TestKITTI2015(epoch,output_folder,filtered,lr_check,fill_incons,save):
     inters_list = set(left_elem_list) & set(right_elem_list) & set(gt_elem_list)    
     inters_list = list(inters_list)
 
-    left_list = []
-    right_list = []
-    disp_list = []
+    #only test first 30 for time
+    for i in range(0,30):  #len(inters_list)
 
-    #only test first 30! should be enough?
-    for i in range(0,len(inters_list)):  #len(inters_list)
-
-        cur_left = cv2.imread(input_folder + 'image_2/' +  inters_list[i])
-        cur_right = cv2.imread(input_folder + 'image_3/' +  inters_list[i])
         cur_gt = cv2.imread(input_folder + 'disp_noc_0/' +  inters_list[i])
         #RGB image
         cur_gt = np.mean(cur_gt, axis=2)
 
         cur_gt = cur_gt.astype(np.float32)
-        #set disp == 0 to np.inf!!
         cur_gt[np.where(cur_gt == 0)] = np.inf
         max_disp =  int(np.ceil(cur_gt[np.isfinite(cur_gt)].max())) + 1
         
         
         s_name = inters_list[i]
-        t = time.time()
-
-        disp_name = output_folder + s_name + '_epoch_%05i.pfm' %epoch
         disp = None
         
-        disp_s,disp = TestImage(input_folder + 'image_2/' + s_name, input_folder + 'image_3/' + s_name, max_disp, filtered, lr_check)   
-        
-        
-        if(fill_incons):
-
-            #do it dynamically
-            disp_s_arr = np.array(disp_s)
-            im_disp = Image.fromarray(disp_s_arr) 
-            im_disp = np.dstack((im_disp, im_disp, im_disp)).astype(np.uint8)    
-
-            h,w = disp_s.shape
-
-            shifted = cv2.pyrMeanShiftFiltering(im_disp, 7, 7)
-
-            gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 1,
-                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-            #kernel = np.ones((5,5), np.uint8)
-            #dilation = cv2.dilate(thresh,kernel,iterations = 2)
-            #mask = cv2.erode(dilation, kernel, iterations=2)
-
-            disp_filled  = FillIncons(thresh, disp_s_arr)
-            elapsed = time.time() - t
-            disp = np.array(disp)
-            disp_filled = np.array(disp_filled)
-            
+        if(lr_check):
+            disp_s,disp, disp_rl = TestImage(branch, simB,input_folder + 'image_2/' + s_name, input_folder + 'image_3/' + s_name, max_disp, filtered, lr_check)   
         else:
-            disp = np.array(disp)
+            disp = TestImage(branch, simB,input_folder + 'image_2/' + s_name, input_folder + 'image_3/' + s_name, max_disp, filtered, lr_check) 
+        
+        disp = np.array(disp)
 
         gt = np.array(cur_gt)
-        if(fill_incons):
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp_filled, gt)    
-        else:
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
-
+        five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
 
         avg_four_pe = avg_four_pe +  four_pe
         avg_two_pe = avg_two_pe + two_pe
         avg_pf_pe = avg_pf_pe + pf_pe        
 
-        if(fill_incons):
-            if(save):
-                writePFMcyt(output_folder +  s_name + '%06d.pfm' %epoch,disp_filled.astype(np.float32)) 
-                writePFMcyt(output_folder +  s_name + '%06d_s.pfm' %epoch,disp_s) 
-
-        else:
-            if(save):
-                writePFMcyt(output_folder +  s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
-                if(lr_check):
-                    writePFMcyt(output_folder + s_name + '%06d_s.pfm' %epoch,disp_s) 
-    
-    
+        if(save):
+            writePFMcyt(output_folder +  s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
+            if(lr_check):
+                writePFMcyt(output_folder + s_name + '%06d_s.pfm' %epoch,disp_s) 
     
     avg_two_pe = avg_two_pe / (i+1)
     return avg_two_pe
 
-def TestKITTI2012(epoch,output_folder,filtered,lr_check,fill_incons,save):
+
+def TestKITTI2012(branch, simB, input_folder, epoch, output_folder,filtered,lr_check,fill_incons, save):
     
         
     avg_four_pe = 0.0 
@@ -1347,87 +1039,46 @@ def TestKITTI2012(epoch,output_folder,filtered,lr_check,fill_incons,save):
     inters_list = set(left_elem_list) & set(right_elem_list) & set(gt_elem_list)    
     inters_list = list(inters_list)
 
-    left_list = []
-    right_list = []
-    disp_list = []
-
-    #only test first 30! should be enough?
+    #only test first 30 for time
     for i in range(0,30):  #len(inters_list)
 
-        cur_left = cv2.imread(input_folder + 'colored_0/' +  inters_list[i])
-        cur_right = cv2.imread(input_folder + 'colored_1/' +  inters_list[i])
         cur_gt = cv2.imread(input_folder + 'disp_noc/' +  inters_list[i])
         #RGB image
         cur_gt = np.mean(cur_gt, axis=2)
 
         cur_gt = cur_gt.astype(np.float32)
-        #set disp == 0 to np.inf!!
+        
         cur_gt[np.where(cur_gt == 0)] = np.inf
         max_disp =  int(np.ceil(cur_gt[np.isfinite(cur_gt)].max())) + 1
         
         
         s_name = inters_list[i]
-        t = time.time()
 
-        disp_name = output_folder + s_name + '_epoch_%05i.pfm' %epoch
         disp = None
-        
-        disp_s,disp = TestImage(input_folder + 'colored_0/' + s_name, input_folder + 'colored_1/' + s_name, max_disp, filtered, lr_check)   
-        
-        
-        if(fill_incons):
-
-            #do it dynamically
-            disp_s_arr = np.array(disp_s)
-            im_disp = Image.fromarray(disp_s_arr) 
-            im_disp = np.dstack((im_disp, im_disp, im_disp)).astype(np.uint8)    
-
-            h,w = disp_s.shape
-
-            shifted = cv2.pyrMeanShiftFiltering(im_disp, 7, 7)
-
-            gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 1,
-                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-            #kernel = np.ones((5,5), np.uint8)
-            #dilation = cv2.dilate(thresh,kernel,iterations = 2)
-            #mask = cv2.erode(dilation, kernel, iterations=2)
-
-            disp_filled  = FillIncons(thresh, disp_s_arr)
-            elapsed = time.time() - t
-            disp = np.array(disp)
-            disp_filled = np.array(disp_filled)
-            
+        if(lr_check):
+            disp_s,disp, disp_rl = TestImage(branch, simB, input_folder + 'colored_0/' + s_name, input_folder + 'colored_1/' + s_name, max_disp, filtered, lr_check)   
         else:
-            disp = np.array(disp)
-
+            disp = TestImage(branch, simB, input_folder + 'colored_0/' + s_name, input_folder + 'colored_1/' + s_name, max_disp, filtered, lr_check)   
+        
+        disp = np.array(disp)
         gt = np.array(cur_gt)
-        if(fill_incons):
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp_filled, gt)    
-        else:
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
+        
+        five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
 
 
         avg_four_pe = avg_four_pe +  four_pe
         avg_two_pe = avg_two_pe + two_pe
         avg_pf_pe = avg_pf_pe + pf_pe        
 
-        if(fill_incons):
-            if(save):
-                writePFMcyt(output_folder +  s_name + '%06d.pfm' %epoch,disp_filled.astype(np.float32)) 
-                writePFMcyt(output_folder +  s_name + '%06d_s.pfm' %epoch,disp_s) 
-
-        else:
-            if(save):
-                writePFMcyt(output_folder +  s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
-                if(lr_check):
-                    writePFMcyt(output_folder + s_name + '%06d_s.pfm' %epoch,disp_s) 
+        if(save):
+            writePFMcyt(output_folder +  s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
+            if(lr_check):
+                writePFMcyt(output_folder + s_name + '%06d_s.pfm' %epoch,disp_s) 
     
     avg_two_pe = avg_two_pe / (i+1)
     return avg_two_pe
 
-def TestETH(epoch, output_folder,filtered,lr_check,fill_incons, save):
+def TestETH(branch, simB, input_folder,epoch, output_folder,filtered,lr_check,fill_incons, save):
     
     avg_five_pe = 0.0
     avg_four_pe = 0.0 
@@ -1449,51 +1100,18 @@ def TestETH(epoch, output_folder,filtered,lr_check,fill_incons, save):
         max_disp =  int(np.ceil(gt[np.isfinite(gt)].max())) + 1
         s_name = samples.split('/')[-2]
 
-        disp_name = samples + '/disp0'+algo_name
-
         disp = None
         disp_s = None
 
         if(lr_check):
-            disp_s,disp = TestImage(samples + '/im0.png', samples + '/im1.png', max_disp, filtered, lr_check)
+            disp_s,disp,disp_lr = TestImage(branch, simB,samples + '/im0.png', samples + '/im1.png', max_disp, filtered, lr_check)
         else:
-            _,disp = TestImage(samples + '/im0.png', samples + '/im1.png', max_disp, filtered, lr_check)
+            disp = TestImage(branch, simB,samples + '/im0.png', samples + '/im1.png', max_disp, filtered, lr_check)
 
-        folder = samples
-
-
-        if(fill_incons):
-
-            #do it dynamically
-            disp_s_arr = np.array(disp_s)
-            im_disp = Image.fromarray(disp_s_arr) 
-            im_disp = np.dstack((im_disp, im_disp, im_disp)).astype(np.uint8)    
-
-            h,w = disp_s.shape
-
-            shifted = cv2.pyrMeanShiftFiltering(im_disp, 7, 7)
-
-            gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 1,
-                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-            #kernel = np.ones((5,5), np.uint8)
-            #dilation = cv2.dilate(thresh,kernel,iterations = 2)
-            #mask = cv2.erode(dilation, kernel, iterations=2)
-
-            disp_filled  = FillIncons(thresh, disp_s_arr)
-            disp = np.array(disp)
-            disp_filled = np.array(disp_filled)
-            
-        else:
-            disp = np.array(disp)
+        disp = np.array(disp)
 
         gt = np.array(gt)
-        if(fill_incons):
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp_filled, gt)    
-        else:
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
-
+        five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
 
         avg_five_pe = avg_five_pe + five_pe
         avg_four_pe = avg_four_pe +  four_pe
@@ -1502,339 +1120,14 @@ def TestETH(epoch, output_folder,filtered,lr_check,fill_incons, save):
         avg_one_pe = avg_one_pe + one_pe
         avg_pf_pe = avg_pf_pe + pf_pe        
 
-        if(fill_incons):
-            if(save):
-                writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp_filled.astype(np.float32)) 
+        if(save):
+            writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
+            if(lr_check):
                 writePFMcyt(output_folder + algo_name + s_name + '%06d_s.pfm' %epoch,disp_s) 
-        else:
-            if(save):
-                writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
-                if(lr_check):
-                    writePFMcyt(output_folder + algo_name + s_name + '%06d_s.pfm' %epoch,disp_s) 
-
 
     avg_two_pe = avg_two_pe / nr_samples
     return avg_two_pe
 
-def TestSintel(epoch, output_folder,filtered,lr_check,fill_incons, save):
-
-    avg_five_pe = 0.0
-    avg_four_pe = 0.0 
-    avg_three_pe = 0.0 
-    avg_two_pe = 0.0
-    avg_one_pe = 0.0
-    avg_pf_pe = 0.0
-
-    left_filelist = glob.glob(input_folder + 'clean_left/*/*.png')
-    right_filelist = glob.glob(input_folder + 'clean_right/*/*.png')
-    disp_filelist = glob.glob(input_folder + 'disparities/*/*.png')
-    
-    left_filelist = sorted(left_filelist)
-    right_filelist = sorted(right_filelist)
-    disp_filelist = sorted(disp_filelist)   
-    
-    
-    #for now no folders (easier) just increase frame counter!
-    
-    frame_count = 0
-    
-    for i in range(0,len(left_filelist)):  #len(left_filelist) #30
-
-        cur_left = cv2.imread(left_filelist[i])
-        cur_right = cv2.imread(right_filelist[i])
-        
-        gt = disparity_sintel(disp_filelist[i])
-        gt = gt.astype(np.float32)
-        #set disp == 0 to np.inf!!
-        gt[np.where(gt == 0)] = np.inf
-        
-        max_disp =  int(np.ceil(gt[np.isfinite(gt)].max())) + 1
-        
-        
-        s_name = 'frame_%04i' %frame_count
-
-        disp_name = output_folder + s_name + '.pfm'
-        disp_name_s = output_folder + s_name + '_s.pfm'
-
-        disp = None
-        
-        if(lr_check):
-            disp_s,disp, disp_lr = TestImage(left_filelist[i], right_filelist[i], max_disp, filtered, lr_check)
-        else:
-            disp_s,disp = TestImage(left_filelist[i], right_filelist[i], max_disp, filtered, lr_check)            
-        
-        if(fill_incons):
-
-            #do it dynamically
-            disp_s_arr = np.array(disp_s)
-            im_disp = Image.fromarray(disp_s_arr) 
-            im_disp = np.dstack((im_disp, im_disp, im_disp)).astype(np.uint8)    
-
-            h,w = disp_s.shape
-
-            shifted = cv2.pyrMeanShiftFiltering(im_disp, 7, 7)
-
-            gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 1,
-                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-            #kernel = np.ones((5,5), np.uint8)
-            #dilation = cv2.dilate(thresh,kernel,iterations = 2)
-            #mask = cv2.erode(dilation, kernel, iterations=2)
-
-            disp_filled  = FillIncons(thresh, disp_s_arr)
-            disp = np.array(disp)
-            disp_filled = np.array(disp_filled)
-            
-        else:
-            disp = np.array(disp)
-
-        gt = np.array(gt)
-        if(fill_incons):
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp_filled, gt)    
-        else:
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
-
-        if(save):
-            if(lr_check):
-                writePFMcyt(disp_name_s,disp_s.astype(np.float32))
-                h,w = disp_s.shape
-
-                new_upd_mask = np.zeros((h,w))
-                new_upd_mask[np.isnan(disp_s)] = 1
-                new_upd_mask[np.isinf(disp_s)] = 1
-
-                new_keep_mask = np.zeros((h,w))
-                new_keep_mask[np.where(new_upd_mask == 0)] = 1
-
-                new_upd_mask = new_upd_mask * 255
-                new_keep_mask =  new_keep_mask * 255
-
-                cv2.imwrite(output_folder + s_name + 'upd_mask.png', new_upd_mask.astype(np.uint8))
-                cv2.imwrite(output_folder + s_name + 'keep_mask.png', new_keep_mask.astype(np.uint8))
-                
-                cv2.imwrite(output_folder + s_name + 'im0.png', cur_left.astype(np.uint8))
-                
-                writePFMcyt(output_folder + s_name + 'disp0GT.pfm',gt.astype(np.float32))
-            
-            if(fill_incons):
-                writePFMcyt(disp_name,disp_filled.astype(np.float32))
-            
-            else:
-                writePFMcyt(disp_name,disp.astype(np.float32))               
-                
-        avg_five_pe = avg_five_pe + five_pe
-        avg_four_pe = avg_four_pe +  four_pe
-        avg_three_pe = avg_three_pe + three_pe
-        avg_two_pe = avg_two_pe + two_pe
-        avg_one_pe = avg_one_pe + one_pe
-        avg_pf_pe = avg_pf_pe + pf_pe        
-                
-        frame_count = frame_count + 1
-    
-    avg_two_pe = avg_two_pe / i
-    return avg_two_pe
-
-
-def TestDrivingStereo(epoch, output_folder,filtered,lr_check,fill_incons, save):
-
-    avg_four_pe = 0.0 
-    avg_two_pe = 0.0
-    avg_pf_pe = 0.0 
-
-    left_filelist = glob.glob(input_folder + 'left/3/*.jpg')
-    right_filelist = glob.glob(input_folder + 'right/3/*.jpg')
-    disp_filelist = glob.glob(input_folder + 'disp/3/*.png')
-    
-    left_filelist = sorted(left_filelist)
-    right_filelist = sorted(right_filelist)
-    disp_filelist = sorted(disp_filelist)   
-    
-    
-    #for now no folders (easier) just increase frame counter!
-    frame_count = 0
-    for i in range(0,30):  #len(inters_list)
-
-        cur_left = cv2.imread(left_filelist[i])
-        cur_right = cv2.imread(right_filelist[i])
-        
-
-        cur_gt = cv2.imread(disp_filelist[i])
-        #RGB image
-        cur_gt = np.mean(cur_gt, axis=2)
-        cur_gt = cur_gt.astype(np.float32)
-        #set disp == 0 to np.inf!!
-        cur_gt[np.where(cur_gt == 0)] = np.inf
-           
-        max_disp =  int(np.ceil(cur_gt[np.isfinite(cur_gt)].max())) + 1
-        
-        s_name = 'frame_%04i' %frame_count
-
-        disp_name = output_folder + s_name + '_epoch_%05i.pfm' %epoch
-        disp_name_s = output_folder + s_name + '_s_epoch_%05i.pfm' %epoch
-
-        disp = None
-        
-        disp_s, disp, disp_lr = TestImage(left_filelist[i], right_filelist[i], max_disp, filtered, lr_check)
-
-        
-        if(fill_incons):
-
-            #do it dynamically
-            disp_s_arr = np.array(disp_s)
-            im_disp = Image.fromarray(disp_s_arr) 
-            im_disp = np.dstack((im_disp, im_disp, im_disp)).astype(np.uint8)    
-
-            h,w = disp_s.shape
-
-            shifted = cv2.pyrMeanShiftFiltering(im_disp, 7, 7)
-
-            gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 1,
-                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-            #kernel = np.ones((5,5), np.uint8)
-            #dilation = cv2.dilate(thresh,kernel,iterations = 2)
-            #mask = cv2.erode(dilation, kernel, iterations=2)
-
-            disp_filled  = FillIncons(thresh, disp_s_arr)
-            disp = np.array(disp)
-            disp_filled = np.array(disp_filled)
-            
-        else:
-            disp = np.array(disp)
-
-        gt = np.array(cur_gt)
-        if(fill_incons):
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp_filled, gt)    
-        else:
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
-
-        if(save):
-            if(lr_check):
-                writePFMcyt(disp_name_s,disp_s.astype(np.float32))
-            
-            if(fill_incons):
-                writePFMcyt(disp_name,disp_filled.astype(np.float32))
-            
-            else:
-                writePFMcyt(disp_name,disp.astype(np.float32))               
-
-                
-                
-        h,w = disp_s.shape
-
-        new_upd_mask = np.zeros((h,w))
-        new_upd_mask[np.isnan(disp_s)] = 1
-        new_upd_mask[np.isinf(disp_s)] = 1
-
-        new_keep_mask = np.zeros((h,w))
-        new_keep_mask[np.where(new_upd_mask == 0)] = 1
-
-        new_upd_mask = new_upd_mask * 255
-        new_keep_mask =  new_keep_mask * 255
-
-        cv2.imwrite(output_folder + algo_name + s_name + 'upd_mask.png', new_upd_mask.astype(np.uint8))
-        cv2.imwrite(output_folder + algo_name + s_name + 'keep_mask.png', new_keep_mask.astype(np.uint8))
-         
-                
-                
-        avg_four_pe = avg_four_pe +  four_pe
-        avg_two_pe = avg_two_pe + two_pe
-        avg_pf_pe = avg_pf_pe + pf_pe
-                
-        frame_count = frame_count + 1
-    
-    avg_two_pe = avg_two_pe / i
-    return avg_two_pe
-
-def TestFlyingThings(epoch, output_folder,filtered,lr_check,fill_incons, save):
-
-    avg_four_pe = 0.0 
-    avg_two_pe = 0.0
-    avg_pf_pe = 0.0 
-
-    left_filelist = glob.glob(input_folder + 'frames_cleanpass/TRAIN/*/*/left/*.png')
-    right_filelist = glob.glob(input_folder + 'frames_cleanpass/TRAIN/*/*/right/*.png')
-    disp_filelist = glob.glob(input_folder + 'disparity/TRAIN/*/*/left/*.pfm')
-    
-    left_filelist = sorted(left_filelist)
-    right_filelist = sorted(right_filelist)
-    disp_filelist = sorted(disp_filelist)   
-    
-    #for now no folders (easier) just increase frame counter!
-    frame_count = 0
-    for i in range(0,30):  #len(inters_list)
-
-        cur_left = cv2.imread(left_filelist[i])
-        cur_right = cv2.imread(right_filelist[i])
-        
-
-        cur_gt,_ = readPFM(disp_filelist[i])
-        #RGB image
-        #cur_gt = np.mean(cur_gt, axis=2)
-        #cur_gt = cur_gt.astype(np.float32)
-        #set disp == 0 to np.inf!!
-        #cur_gt[np.where(cur_gt == 0)] = np.inf
-           
-        max_disp =  int(np.ceil(cur_gt[np.isfinite(cur_gt)].max())) + 1
-        
-        s_name = 'frame_%04i' %frame_count
-
-        disp_name = output_folder + s_name + '_epoch_%05i.pfm' %epoch
-        disp_name_s = output_folder + s_name + '_s_epoch_%05i.pfm' %epoch
-
-        disp = None
-        
-        disp_s, disp, disp_lr = TestImage(left_filelist[i], right_filelist[i], max_disp, filtered, lr_check)
-
-        
-        if(fill_incons):
-
-            #do it dynamically
-            disp_s_arr = np.array(disp_s)
-            im_disp = Image.fromarray(disp_s_arr) 
-            im_disp = np.dstack((im_disp, im_disp, im_disp)).astype(np.uint8)    
-
-            h,w = disp_s.shape
-
-            shifted = cv2.pyrMeanShiftFiltering(im_disp, 7, 7)
-
-            gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 1,
-                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-            disp_filled  = FillIncons(thresh, disp_s_arr)
-            disp = np.array(disp)
-            disp_filled = np.array(disp_filled)
-            
-        else:
-            disp = np.array(disp)
-
-        gt = np.array(cur_gt)
-        if(fill_incons):
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp_filled, gt)    
-        else:
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
-
-        if(save):
-            if(lr_check):
-                writePFMcyt(disp_name_s,disp_s.astype(np.float32))
-            
-            if(fill_incons):
-                writePFMcyt(disp_name,disp_filled.astype(np.float32))
-            
-            else:
-                writePFMcyt(disp_name,disp.astype(np.float32))               
-
-        avg_four_pe = avg_four_pe +  four_pe
-        avg_two_pe = avg_two_pe + two_pe
-        avg_pf_pe = avg_pf_pe + pf_pe
-                
-        frame_count = frame_count + 1
-    
-    avg_two_pe = avg_two_pe / i
-    return avg_two_pe
 
 def calcEPE(disp, gt_fn):
     
@@ -1945,141 +1238,18 @@ def my_hinge_loss(s_p, s_n):
 
     return loss
 
-
-def TestMBEval(epoch, output_folder,filtered,lr_check,fill_incons, save):
-    
-    s_count = 1
-    t_count = 0.0
-
-    avg_five_pe = 0.0
-    avg_four_pe = 0.0 
-    avg_three_pe = 0.0 
-    avg_two_pe = 0.0
-    avg_one_pe = 0.0
-    avg_pf_pe = 0.0
-    algo_name = 'FC_sim_'
-
-    inp_folder = '/media/HDD/TrainingsData/MB/Additional/Half/*'
-    nr_samples = len(glob.glob(inp_folder))
-    
-    for samples in glob.glob(inp_folder):
-
-        print(samples)
-        gt,_ = readPFM(samples + '/disp0.pfm')
-
-        f = open(samples + '/calib.txt','r')
-        calib = f.read()
-        max_disp = int(calib.split('\n')[6].split("=")[1])
-        s_name = samples.split('/')[-1]
-        #print(s_name)
-        t = time.time()
-
-        disp_name = samples + '/disp0'+algo_name
-
-        disp = None
-        disp_s = None
-
-        if(lr_check):
-            disp_s,disp, disp_rl = TestImage(samples + '/im0.png', samples + '/im1.png', max_disp, filtered, lr_check)
-        else:
-            disp = TestImage(samples + '/im0.png', samples + '/im1.png', max_disp, filtered, lr_check)
-
-        if(not fill_incons):
-            s_count = s_count + 1
-            elapsed = time.time() - t
-
-
-        folder = samples
-
-
-        if(fill_incons):
-
-            #do it dynamically
-            disp_s_arr = np.array(disp_s)
-            im_disp = Image.fromarray(disp_s_arr) 
-            im_disp = np.dstack((im_disp, im_disp, im_disp)).astype(np.uint8)    
-
-            h,w = disp_s.shape
-
-            shifted = cv2.pyrMeanShiftFiltering(im_disp, 7, 7)
-
-            gray = cv2.cvtColor(shifted, cv2.COLOR_BGR2GRAY)
-            thresh = cv2.threshold(gray, 0, 1,
-                cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
-
-            disp_filled  = FillIncons(thresh, disp_s_arr)
-            s_count = s_count + 1
-            elapsed = time.time() - t
-            disp = np.array(disp)
-            disp_filled = np.array(disp_filled)
-            
-        else:
-            disp = np.array(disp)
-
-        gt = np.array(gt)
-        if(fill_incons):
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp_filled, gt)    
-        else:
-            five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe = calcEPE(disp, gt)
-
-
-        avg_five_pe = avg_five_pe + five_pe
-        avg_four_pe = avg_four_pe +  four_pe
-        avg_three_pe = avg_three_pe + three_pe
-        avg_two_pe = avg_two_pe + two_pe
-        avg_one_pe = avg_one_pe + one_pe
-        avg_pf_pe = avg_pf_pe + pf_pe        
-
-        if(fill_incons):
-                writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp_filled.astype(np.float32)) 
-                writePFMcyt(output_folder + algo_name + s_name + '%06d_s.pfm' %epoch,disp_s) 
-                writePFMcyt(output_folder + algo_name + s_name + '%06d_rl.pfm' %epoch,disp_rl.astype(np.float32)) 
-
-        else:
-            if(save):
-                writePFMcyt(output_folder + algo_name + s_name + '%06d.pfm' %epoch,disp.astype(np.float32))
-                if(lr_check):
-                    writePFMcyt(output_folder + algo_name + s_name + '%06d_s.pfm' %epoch,disp_s) 
-                    writePFMcyt(output_folder + algo_name + s_name + '%06d_rl.pfm' %epoch,disp_rl.astype(np.float32)) 
-
-
-    avg_four_pe = avg_four_pe / nr_samples
-    avg_two_pe = avg_two_pe / nr_samples
-    avg_one_pe = avg_one_pe / nr_samples
-    avg_pf_pe = avg_pf_pe / nr_samples
-    
-    print("4-PE: {}".format(avg_four_pe))
-    print("2-PE: {}".format(avg_two_pe))
-    print("1-PE: {}".format(avg_one_pe))
-    print("0.5-PE: {}".format(avg_pf_pe))
-    
-    return avg_two_pe
-
-
-#in train script!
-#def loadData():
-#    if(dataset == 'KITTI2012'):
-#        left_list, right_list, gt_list = loadKitti2012()
-#    if(dataset == 'KITTI2015'):
-#        left_list, right_list, gt_list = loadKitti2015()
-#    if(dataset == 'MB' or dataset == 'MB2021'):
-#        left_list, right_list, gt_list = loadMB()
-#    if(dataset == 'ETH'):
-#        left_list, right_list, gt_list = loadETH3D()
-#    if(dataset == 'Sintel'):
-#        left_list, right_list, gt_list = loadSintel()
-#    if(dataset == 'drivingStereo'):
-#        left_list, right_list, gt_list = loadDrivingStereo()
-#    if(dataset == 'flyingThings'):
-#        left_list, right_list, gt_list = loadFlyingThings()
-
-
 def train(branch, simB,lr, input_folder, nr_epochs, nr_batches,batch_size, patch_size, dataset, out_folder,save_weights, save_folder_branch, save_folder_simb, model_name):
     
     params = list(branch.parameters()) + list(simB.parameters())
     if(dataset == 'MB'):
         left_list, right_list, gt_list = loadMB(input_folder)
-
+    if(dataset == 'Kitti2012'):
+        left_list, right_list, gt_list = loadKitti2012(input_folder)
+    if(dataset == 'Kitti2015'):
+        left_list, right_list, gt_list = loadKitti2015(input_folder)
+    if(dataset == 'ETH'):
+        left_list, right_list, gt_list = loadETH3D(input_folder)
+    
     
     optimizer_G = optim.Adam(params, lr) 
     
@@ -2115,7 +1285,6 @@ def train(branch, simB,lr, input_folder, nr_epochs, nr_batches,batch_size, patch
             batch_loss.backward()
             optimizer_G.step()
             
-    
             epoch_loss = epoch_loss + batch_loss
     
         epoch_loss = epoch_loss/nr_batches
@@ -2123,20 +1292,13 @@ def train(branch, simB,lr, input_folder, nr_epochs, nr_batches,batch_size, patch
             print("EPOCH: {} loss: {}".format(i,epoch_loss))
     
             if(dataset == 'MB' or dataset == 'MB2021'):
-                avg_2PE = TestMBHP(branch, simB, input_folder, 0,out_folder,False,False,False, True)
-            if(dataset == 'KITTI2012'):
-                avg_2PE = TestKITTI2012(0,out_folder,False,False,False, True)
-            if(dataset == 'KITTI2015'):
-                avg_2PE = TestKITTI2015(0,out_folder,False,False,False, True)
+                avg_2PE = TestMB(branch, simB, input_folder, 0,out_folder,False,False,False, True)
+            if(dataset == 'Kitti2012'):
+                avg_2PE = TestKITTI2012(branch, simB, input_folder, 0,out_folder,False,False,False, True)
+            if(dataset == 'Kitti2015'):
+                avg_2PE = TestKITTI2015(branch, simB, input_folder, 0,out_folder,False,False,False, True)
             if(dataset == 'ETH'):
-                avg_2PE = TestETH(0,out_folder,False,False,False, True)
-            if(dataset == 'Sintel'):
-                avg_2PE = TestSintel(0,out_folder,False,False,False, True)
-            if(dataset == 'drivingStereo'):
-                avg_2PE = TestDrivingStereo(0,out_folder,False,False,False, True)
-            if(dataset == 'flyingThings'):
-                print('Test data')
-                avg_2PE = TestFlyingThings(0,out_folder,False,False,False, True)   
+                avg_2PE = TestETH(branch, simB, input_folder, 0,out_folder,False,False,False, True)
     
             if(avg_2PE < best_err):
                 print(colored("NEW BP: {}".format(avg_2PE), 'green', attrs=['bold']))
@@ -2146,16 +1308,6 @@ def train(branch, simB,lr, input_folder, nr_epochs, nr_batches,batch_size, patch
             else:
                 print("got worse")
                 print(avg_2PE)
-        
-        if(dataset == 'drivingStereo'):
-            if(i % 250 == 0):
-                left_list, right_list, gt_list = loadDrivingStereo()
-        if(dataset == 'flyingThings'):
-            if(i % 1000 == 0):
-                print('Load new data....')
-                left_list, right_list, gt_list = loadFlyingThings()
-                print('done')
-            
 
 if __name__ == "__main__":
     main()    

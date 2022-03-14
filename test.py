@@ -186,9 +186,6 @@ class SiameseBranch64(nn.Module):
     def __init__(self,img_ch=3):
         super(SiameseBranch64,self).__init__()
         
-        #self.conv_offset = nn.Conv2d(img_ch, 18, kernel_size=3, padding=1, bias=None)
-        #self.deform_conv = DeformConv2D(img_ch, img_ch, padding=1)        
-        
         self.Tanh = nn.Tanh() 
         self.Conv1 = nn.Conv2d(img_ch, num_conv_feature_maps, kernel_size = 3,stride=1,padding = 1,dilation = 1, bias=True)      
         self.Conv2 = nn.Conv2d(num_conv_feature_maps, num_conv_feature_maps, kernel_size=3,stride=1,padding = 1,dilation = 1, bias=True)
@@ -197,12 +194,6 @@ class SiameseBranch64(nn.Module):
         
         
     def forward(self,x_in):
-
-        #maybe also for input? let us try it!
-        #deform_conv block!
-        
-        #offsets = self.conv_offset(x_in)
-        #x_in = self.deform_conv(x_in,offsets)
 
         x1 = self.Conv1(x_in) 
         x1 = self.Tanh(x1)
@@ -216,9 +207,7 @@ class SiameseBranch64(nn.Module):
         x3 = self.Tanh(x3)
         
         d3 = torch.cat((x1,x2,x3),dim=1)
-        
         x4 = self.Conv4(d3)
-        #DEFORM BLOCK HERE NEEDS TOO MUCH GPU!!!(way too much)
         
         return x4
     
@@ -231,7 +220,6 @@ class SimMeasTanh(nn.Module):
         super(SimMeasTanh,self).__init__()
         
         self.tanh = nn.Tanh() 
-        #self.tanh = nn.Sigmoid()
         
         self.Conv1 = nn.Conv2d(img_ch, conv_sim_tanh, kernel_size = 3,stride=1,padding = 1,dilation = 1, bias=True)
         self.Conv2 = nn.Conv2d(conv_sim_tanh, conv_sim_tanh, kernel_size=3,stride=1,padding = 1,dilation = 1, bias=True)
@@ -239,9 +227,6 @@ class SimMeasTanh(nn.Module):
         self.Conv4 = nn.Conv2d(3*conv_sim_tanh, conv_sim_tanh, kernel_size=3,stride=1,padding = 1,dilation = 1, bias=True)
         self.Conv5 = nn.Conv2d(4*conv_sim_tanh, 1, kernel_size=3,stride=1,padding = 1,dilation = 1, bias=True)
         
-        #why does the output need to be 18?? who knows..
-        #everything else not possible with GPU-RAM! Come up with new network structure?
-        #maybe the sim.meas does not need to be fully densely conn.?
         self.conv_offset = nn.Conv2d(1, 18, kernel_size=3, padding=1, bias=None)
         self.deform_conv = DeformConv2D(1, 1, padding=1)
         
@@ -400,12 +385,8 @@ def TestFillIncons(nr_iter, disp, im_left):
         
         
     disp_arr = final_outp.cpu().data.numpy().astype(np.float32)
-    #disp_arr = cv2.medianBlur(disp_arr,5)                 
     return disp_arr
 
-
-
-##python3 version!!!!
 def readPFM(file):
     file = open(file, 'rb')
 
@@ -515,8 +496,6 @@ class MedianBlur(nn.Module):
         median: torch.Tensor = torch.median(features, dim=2)[0]
         return median
 
-
-
 # functiona api
 def median_blur(input: torch.Tensor,
                 kernel_size: Tuple[int, int]) -> torch.Tensor:
@@ -539,7 +518,6 @@ def filterCostVolMedianPyt(cost_vol):
     return torch.squeeze(cost_vol)
 
 
-#from guided_filter_pytorch.guided_filter import FastGuidedFilter
 from guided_filter_pytorch.guided_filter import GuidedFilter
 def filterCostVolBilatpyt(cost_vol,left):
     
@@ -585,14 +563,7 @@ def LR_Check(first_output, second_output):
     
     first_output = first_output.astype(np.float32)
     first_output[np.where(first_output == 0.0)] = np.nan
-    
-    #only for MB!
-#    if(dataset == 'MB' or dataset == 'MBTest'):
-#        first_output[np.where(first_output <= 18)] = np.nan
-    #KITTItest ?
-#    if(dataset == 'KITTI2012' or dataset == 'KITTI2015'):
-#        first_output[np.where(first_output <= 2)] = np.nan
-        
+            
     return first_output
 
 
@@ -619,9 +590,6 @@ def createCostVol(left_im,right_im,max_disp):
         cost_vol = np.zeros((max_disp+1,a_h,a_w))
         cost_volT = Variable(Tensor(cost_vol))
         
-
-        #0 => max_disp => one less disp!
-        #python3 apparently cannot have 0 here for disp: right_shift = torch.cuda.FloatTensor(1,f,h,disp).fill_(0)  
         for disp in range(0,max_disp+1):
 
             if(disp == 0):
@@ -635,10 +603,9 @@ def createCostVol(left_im,right_im,max_disp):
 
                 _,f,h_ap,w_ap = right_appended.shape
                 right_shifted[:,:,:,:] = right_appended[:,:,:,:(w_ap-disp)]
-                sim_score = simB(torch.cat((left_feat, right_shifted),dim=1))
-                #sim_score = simB(torch.cat((right_shifted, left_feat),dim=1))
+                sim_score = simB(torch.cat((left_feat, right_shifted),dim=1))                
+                cost_volT[disp,:,:] = torch.squeeze(sim_score)   
                 
-                cost_volT[disp,:,:] = torch.squeeze(sim_score)              
     return cost_volT
 
 
@@ -692,7 +659,6 @@ def TestImage(fn_left, fn_right, max_disp, filtered, lr_check):
     
     if(filtered):
         cost_vol = createCostVol(left,right,max_disp)
-        #cost_vol_filteredn = filterCostVolMedianPyt(cost_vol) 
         
         cost_vol_filteredn = filterCostVolBilatpyt(cost_vol,left)
         cost_vol_filteredn = np.squeeze(cost_vol_filteredn.cpu().data.numpy())                
@@ -704,7 +670,6 @@ def TestImage(fn_left, fn_right, max_disp, filtered, lr_check):
         
         if(lr_check):
             cost_vol_RL = createCostVolRL(left,right,max_disp)
-            #cost_vol_RL_fn = filterCostVolMedianPyt(cost_vol_RL)
             
             cost_vol_RL_fn = filterCostVolBilatpyt(cost_vol_RL,right)
             cost_vol_RL_fn = np.squeeze(cost_vol_RL_fn.cpu().data.numpy())        
