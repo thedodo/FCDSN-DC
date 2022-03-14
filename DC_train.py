@@ -31,9 +31,6 @@ from torchvision import models
 import skimage
 import numpy.matlib
 
-import matplotlib.pyplot as plt
-import progressbar
-
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import PolynomialFeatures
@@ -90,7 +87,8 @@ def main():
     updInc = createNW(chan,n_conv)
     
     nolabel_list, loss_func = getClassWeights(disp_list_f, gt_list_f,chan)
-    loss_func = nn.CrossEntropyLoss()
+    #class labels not used!!
+    #loss_func = nn.CrossEntropyLoss()
     
     train(chan, dataset, updInc, loss_func, batch_size, nr_epochs,out_folder, disp_list_f, gt_list_f, im_left_list_f, patch_size, nolabel_list, w_folder,model_name,lr)    
     
@@ -306,6 +304,97 @@ def loadMB(disp_list_f, gt_list_f, im_left_list_f):
         names.append(disp_list_f[i].split('/')[-2])
         
     return disp_list, gt_list,im_list,names
+
+
+def loadKitti2012(disp_list_f, gt_list_f, im_left_list_f):
+
+    disp_list = []
+    gt_list = []
+    im_list = []
+    names = []
+    
+    for i in range(0,len(disp_list_f)):
+        
+        cur_im = cv2.imread(im_left_list_f[i])
+        #normalize
+        cur_im = (cur_im - np.min(cur_im)) / (np.max(cur_im) - np.min(cur_im))
+        cur_disp, _ = readPFM(disp_list_f[i])
+        cur_gt, _ = readPFM(gt_list_f[i])
+        
+        cur_disp[np.isnan(cur_disp)] = 0
+        cur_disp[np.isinf(cur_disp)] = 0
+
+        cur_gt[np.isnan(cur_gt)] = 0
+        cur_gt[np.isinf(cur_gt)] = 0
+        
+        im_list.append(cur_im)
+        gt_list.append(cur_gt)
+        disp_list.append(cur_disp)
+        names.append(disp_list_f[i].split('/')[-1].split('.')[0])
+        
+    return disp_list, gt_list, im_list, names
+
+
+def loadKitti2015(disp_list_f, gt_list_f, im_left_list_f):
+
+    disp_list = []
+    gt_list = []
+    im_list = []
+    names = []
+    
+    for i in range(0,len(disp_list_f)):
+        
+        cur_im = cv2.imread(im_left_list_f[i])
+        
+        #normalize
+        cur_im = (cur_im - np.min(cur_im)) / (np.max(cur_im) - np.min(cur_im))
+        
+        cur_disp, _ = readPFM(disp_list_f[i])
+        cur_gt, _ = readPFM(gt_list_f[i])
+        
+        cur_disp[np.isnan(cur_disp)] = 0
+        cur_disp[np.isinf(cur_disp)] = 0
+
+        cur_gt[np.isnan(cur_gt)] = 0
+        cur_gt[np.isinf(cur_gt)] = 0
+                
+        im_list.append(cur_im)
+        gt_list.append(cur_gt)
+        disp_list.append(cur_disp)
+        names.append(disp_list_f[i].split('/')[-1].split('.')[0])
+        
+    return disp_list, gt_list, im_list, names
+
+
+def loadETH3D(disp_list_f, gt_list_f, im_left_list_f):
+
+    im_list = []
+    gt_list = []
+    disp_list = []
+    names = []
+    
+    for i in range(0,len(disp_list_f)):
+        
+        cur_im = cv2.imread(im_left_list_f[i])
+        
+        cur_im = (cur_im - np.min(cur_im)) / (np.max(cur_im) - np.min(cur_im))
+        cur_disp, _ = readPFM(disp_list_f[i])
+        cur_gt, _ = readPFM(gt_list_f[i])
+        
+        cur_disp[np.isnan(cur_disp)] = 0
+        cur_disp[np.isinf(cur_disp)] = 0
+
+        cur_gt[np.isnan(cur_gt)] = 0
+        cur_gt[np.isinf(cur_gt)] = 0
+                
+        im_list.append(cur_im)
+        gt_list.append(cur_gt)
+        disp_list.append(cur_disp)
+        names.append(disp_list_f[i].split('/')[-1].split('.')[0])
+        
+
+    return disp_list, gt_list, im_list, names
+
 
 def createShiftPytZero(image, chan):
     
@@ -777,7 +866,15 @@ def train(chan, dataset, updInc, loss_func, batch_size, nr_epochs,out_folder, di
     
     if(dataset == 'MB' or dataset == 'MB2021'):
         disp_list, gt_list, im_list, names = loadMB(disp_list_f, gt_list_f, im_left_list_f)
-    
+    if(dataset == 'Kitti2012'):
+        disp_list, gt_list, im_list, names = loadKitti2012(disp_list_f, gt_list_f, im_left_list_f)
+    if(dataset == 'Kitti2015'):
+        disp_list, gt_list, im_list, names = loadKitti2015(disp_list_f, gt_list_f, im_left_list_f)
+    if(dataset == 'ETH'):
+        disp_list, gt_list, im_list, names = loadKitti2015(disp_list_f, gt_list_f, im_left_list_f)
+        
+        
+        
     optimizer_G = optim.Adam(updInc.parameters(),  lr)
        
     best_two_pe = 100
