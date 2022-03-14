@@ -20,9 +20,9 @@ This repository contains
 ### TODO
 all scripts/notebooks tested for:
 - [X] MB
-- [ ] KITTI2012
-- [ ] KITTI2015
-- [ ] ETH
+- [X] KITTI2012
+- [X] KITTI2015
+- [X] ETH
 
 ## Trained weights
 Dataset | branch |  simB | Incons
