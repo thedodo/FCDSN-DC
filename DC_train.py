@@ -204,6 +204,7 @@ def calcEPE(disp, gt_fn):
         
     return five_pe, four_pe, three_pe, two_pe, one_pe, pf_pe
 
+
 def findGTInDispArr(chan, arr, gt, offset):
     c,w,h = arr.shape
     first_arr = np.zeros((w,h))
@@ -244,6 +245,7 @@ def findGTInDispArr(chan, arr, gt, offset):
                     found = 1
                     break         
     return first_arr
+
 
 def findGTInDispArrSingle(arr, gt, offset):
     
