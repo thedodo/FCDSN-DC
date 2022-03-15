@@ -17,12 +17,7 @@ This repository contains
 - python3.6 code for training and inference
 - trained weights for many publicly available datasets
 
-### TODO
-all scripts/notebooks tested for:
-- [X] MB
-- [X] KITTI2012
-- [X] KITTI2015
-- [X] ETH
+
 
 ## Trained weights
 Dataset | branch |  simB | Incons
@@ -31,6 +26,23 @@ Middlebury | [mb](https://drive.google.com/file/d/1Bo3INQhCK1N17EuLkX7nnie46zHeq
 Kitti2012 | [kitti2012](https://drive.google.com/file/d/1mQtJsb8gesI_9Sy16SdXT_f_FgnKfdCP/view?usp=sharing) | [kitti2012_simB](https://drive.google.com/file/d/1mcxjhUZO6JuokMHLSkq3Q6psdBATOJBJ/view?usp=sharing) | [Icons_KITTI2012](https://drive.google.com/file/d/1SwSke9euif9Kfa4qPRBW7TZwA3z555lv/view?usp=sharing) | 
 Kitti2015 | [kitti2015](https://drive.google.com/file/d/1wY6h1D89e_Mx9aOFSab3FxedDn0n6WiP/view?usp=sharing) | [kitti2015_simB](https://drive.google.com/file/d/1tQRzwjeUE16WS9V2U9P_YHw5fMuVJ7uE/view?usp=sharing) | [Incons_KITTI2015](https://drive.google.com/file/d/1L5QcqW5Ph9gmFpqV1rlMW0-pkINM3y4I/view?usp=sharing) | 
 ETH3D | [ETH](https://drive.google.com/file/d/1i2oNAEk3gX4a_B2f7ei818btuLPk-gpV/view?usp=sharing) | [ETH_simB](https://drive.google.com/file/d/1gZWA6f_Gfm7-Qmfdxim5CeZ__gxj15vb/view?usp=sharing) | [Incons_ETH](https://drive.google.com/file/d/1BYwput_eSdcQYPDp5G7tJmsm9YRY5aJi/view?usp=sharing) |
+
+## Usage
+We use a trainable guided filter for the cost-volume (see [project](http://wuhuikai.me/DeepGuidedFilterProject/)). This can be installed via pip.
+
+ ```pip install guided-filter-pytorch```
+
+### Inference 
+If you want to do inference on any rectified image-pair call the *test.py* function from the root of this repository as follows: 
+
+ ```python test.py --weights_b path/to/branch_weight --weights_s path/to/sim_weights --weights_f path/to/fill_weights --left path/to/left_im.png --right /path/to/right_im.png --max_disp max_disp --out /path/to/out/out_name```
+ 
+#### Example on Middlebury
+Download the Middlebury weights from the link above and put it in the *weights* folder in the root of this repository. Then copy and paste the following: 
+
+```python test.py --weights_b weights/branch/mb --weights_s weights/simb/mb_simB --weights_f weights/fill/Incons --left example/im0.png --right example/im1.png --max_disp 140 --out motorcycle```
+
+If everything went ok this should produce the following output: 
 
 
 ## Examples
