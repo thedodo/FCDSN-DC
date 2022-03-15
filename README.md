@@ -44,12 +44,12 @@ Download the Middlebury weights from the link above and put it in the *weights* 
 
 If everything went ok this should produce the following output: 
 
-- adirondack.pfm: filtered disparity output of the network
-<img src=./docs/adirondack_disp_small.png width=50% height=50%>
+- adirondack.pfm: filtered disparity output of the FCDSN network
+<img src=./docs/adirondack_disp.png width=50% height=50%>
 - adirondack_s.pfm: disparity map with removed inconsistencies
-![Disp_s](./docs/adirondack_disp_s_small.png)
-- adirondack_filled.pfm: disparity with updated inconsistencies (see paper)
-![Disp_filled](./docs/adirondack_disp_filled_small.png)
+<img src=./docs/adirondack_disp_s.png width=50% height=50%>
+- adirondack_filled.pfm: output of DC network
+<img src=./docs/adirondack_disp_filled.png width=50% height=50%>
 
 
 ## Examples
