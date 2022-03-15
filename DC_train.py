@@ -4,36 +4,17 @@ Institute for graphics and vision (ICG)
 University of Technology Graz, Austria
 e-mail: dominik.hirner@icg.tugraz.at
 """
-
-import os
 import sys
 import glob
 import numpy as np
-from numpy import inf
 import cv2
 import re
 import time
 from torch import optim
 
-import time
-import itertools
-import timeit
-import argparse
-import imutils
-from PIL import Image
-
-import torch.nn.functional as F
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-from torchvision import models
-
-import skimage
-import numpy.matlib
-
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import PolynomialFeatures
 
 import random
 from termcolor import colored
@@ -90,12 +71,11 @@ def main():
     #class labels not used!!
     #loss_func = nn.CrossEntropyLoss()
     
-    train(chan, dataset, updInc, loss_func, batch_size, nr_epochs,out_folder, disp_list_f, gt_list_f, im_left_list_f, patch_size, nolabel_list, w_folder,model_name,lr)    
-    
+    train(chan, dataset, updInc, loss_func, batch_size, nr_epochs,out_folder, disp_list_f, gt_list_f, im_left_list_f, patch_size, nolabel_list, w_folder,model_name,lr)
         
 def readPFM(file):
+    
     file = open(file, 'rb')
-
     color = None
     width = None
     height = None

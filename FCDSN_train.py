@@ -381,7 +381,6 @@ def loadKitti2015(input_folder):
 
     left_elem_list = sorted(left_elem_list)
 
-
     right_elem_list = []
     for right_im in right_filelist:
 
@@ -389,8 +388,6 @@ def loadKitti2015(input_folder):
         right_elem_list.append(right_im_el)
 
     right_elem_list = sorted(right_elem_list)
-
-
 
     gt_elem_list = []
     for gt_im in disp_filelist:
@@ -906,7 +903,6 @@ def TestMB(branch, simB, input_folder, epoch, output_folder,filtered,lr_check,fi
 
 
 def TestKITTI2015(branch, simB,input_folder, epoch,output_folder,filtered,lr_check,fill_incons,save):
-    
         
     avg_four_pe = 0.0 
     avg_two_pe = 0.0
