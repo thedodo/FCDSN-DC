@@ -40,7 +40,7 @@ If you want to do inference on any rectified image-pair call the *test.py* funct
 #### Example on Middlebury
 Download the Middlebury weights from the link above and put it in the *weights* folder in the root of this repository. Then copy and paste the following: 
 
-```python test.py --weights_b weights/branch/mb --weights_s weights/simb/mb_simB --weights_f weights/fill/Incons --left example/im0.png --right example/im1.png --max_disp 140 --out motorcycle```
+```python test.py --weights_b weights/branch/mb --weights_s weights/simb/mb_simB --weights_f weights/fill/Incons --left example/im0.png --right example/im1.png --max_disp 145 --out adirondack```
 
 If everything went ok this should produce the following output: 
 
