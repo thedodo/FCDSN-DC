@@ -44,6 +44,13 @@ Download the Middlebury weights from the link above and put it in the *weights* 
 
 If everything went ok this should produce the following output: 
 
+- adirondack.pfm: filtered disparity output of the network
+![NW output](./docs/adirondack_disp.png)
+- adirondack_s.pfm: disparity map with removed inconsistencies
+![Disp_s](./docs/adirondack_disp_s.png)
+- adirondack_filled.pfm: disparity with updated inconsistencies (see paper)
+![Disp_filled](./docs/adirondack_disp_filled.png)
+
 
 ## Examples
 RGB             |  Disparity
