@@ -31,6 +31,17 @@ ETH3D | [ETH](https://drive.google.com/file/d/1i2oNAEk3gX4a_B2f7ei818btuLPk-gpV/
 We use a trainable guided filter for the cost-volume (see [project](http://wuhuikai.me/DeepGuidedFilterProject/)). This can be installed via pip.
 
  ```pip install guided-filter-pytorch```
+### Training 
+If you want to do train our method (either from scratch or continue from one of our provided weights), use the provided config files from the root of this repository and change them to fit your needs. If you want to train from scratch, first train the feature extractor and the similarity function as follows:
+```python FCDSN_train.py config/FCDSN-CONFIG-FILE.cfg
+Afterwards, use the output created by this file to train the depth-completion part as follows: 
+```python DC_train.py config/DC-CONFIG-FILE.cfg
+Note that if you want to do transfer training on the depth-completion, the following files must be found for each sample in an individual folder: 
+- im0.png
+- disp0GT.pfm
+- disp_s.pfm
+- keep_mask.png
+- upd_mask.png
 
 ### Inference 
 If you want to do inference on any rectified image-pair call the *test.py* function from the root of this repository as follows: 
