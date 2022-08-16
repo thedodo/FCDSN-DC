@@ -38,6 +38,7 @@ If you want to do train our method (either from scratch or continue from one of 
 Afterwards, use the output created by this file to train the depth-completion part as follows: 
 
 ```python DC_train.py config/DC-CONFIG-FILE.cfg```
+
 Note that if you want to do transfer training on the depth-completion, the following files must be found for each sample in an individual folder: 
 - im0.png
 - disp0GT.pfm
