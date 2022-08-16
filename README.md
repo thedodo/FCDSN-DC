@@ -32,7 +32,7 @@ We use a trainable guided filter for the cost-volume (see [project](http://wuhui
 
  ```pip install guided-filter-pytorch```
 ### Training 
-If you want to do train our method (either from scratch or continue from one of our provided weights), use the provided config files from the root of this repository and change them to fit your needs. If you want to train from scratch, first train the feature extractor and the similarity function as follows:
+If you want to train our method (either from scratch or continue from one of our provided weights), use the provided config files from the root of this repository and change them to fit your needs. If you want to train from scratch, first train the feature extractor and the similarity function as follows:
 ```python FCDSN_train.py config/FCDSN-CONFIG-FILE.cfg```
 
 Afterwards, use the output created by this file to train the depth-completion part as follows: 
