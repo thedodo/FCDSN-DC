@@ -11,6 +11,9 @@ The whole project is in pure python 3 and pytorch 1.2.0
 A demo of the whole end-to-end method is available online in Google Colab: 
 [Demo](https://colab.research.google.com/drive/10_QRckJdc19unydikcZIRZbTk_g1peHu?usp=sharing)
 
+Demo Video of the MPI dataset: 
+[![Sintel Demo Video](https://youtu.be/x8DIqKZO7Ho/hqdefault.jpg)](https://youtu.be/x8DIqKZO7Ho)
+
 This repository contains
 
 - jupyter notebooks for training and inference of disparity via a stereo-pair
