@@ -4,7 +4,7 @@
 Dominik Hirner, Friedrich Fraundorfer
 
 An pytorch implementation of our accurate and lightweight end-to-end trainable CNN for stereo estimation with depth completion.
-This method has been accepted and will be published at the **ICPR 2022** conference. If you use our work please cite our paper
+This method has been accepted and will be published at the **ICPR 2022** conference. If you use our work please cite our [paper](https://arxiv.org/abs/2010.06950)
 
 The whole project is in pure python 3 and pytorch 1.2.0
 
@@ -12,9 +12,11 @@ A demo of the whole end-to-end method is available online in Google Colab:
 [Demo](https://colab.research.google.com/drive/10_QRckJdc19unydikcZIRZbTk_g1peHu?usp=sharing)
 
 Demo Video of the MPI dataset: 
-[![Sintel Demo Video](https://img.youtube.com/vi/x8DIqKZO7Ho/sddefault.jpg)](https://youtu.be/x8DIqKZO7Ho)
-This repository contains
 
+[![Sintel Demo Video](https://img.youtube.com/vi/x8DIqKZO7Ho/hqdefault.jpg)](https://youtu.be/x8DIqKZO7Ho)
+
+
+This repository contains
 
 - jupyter notebooks for training and inference of disparity via a stereo-pair
 - python3.6 code for training and inference
