@@ -4,7 +4,7 @@
 Dominik Hirner, Friedrich Fraundorfer
 
 An pytorch implementation of our accurate and lightweight end-to-end trainable CNN for stereo estimation with depth completion.
-This method has been accepted and will be published at the **ICPR 2022** conference. If you use our work please cite our [paper](https://arxiv.org/abs/2010.06950)
+This method has been accepted and will be published at the **ICPR 2022** conference. If you use our work please cite our [paper](https://arxiv.org/abs/2209.06525)
 
 The whole project is in pure python 3 and pytorch 1.2.0
 
